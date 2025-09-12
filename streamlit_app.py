@@ -471,4 +471,33 @@ else:
     st.header("Model Performance")
     # Simple evaluation proxy: rolling 50-window 3-of-4 hit rate on historical one-step-ahead
     rows = []
-    boosts = load_boosts() if
+    boosts = load_boosts() if enable_boosts else {}
+    for t in range(1, len(numbers_list)):
+        hist = numbers_list[:t]
+        model_trainer.fit(hist[:-1] if len(hist) > 1 else hist)
+        last = hist[-1]
+        preds = model_trainer.generate_predictions(last, n=30, mutation_strength=0.3, boosts=boosts, boost_weight=boost_weight)
+        actual = numbers_list[t]
+        best_overlap = max(multiset_overlap(p, actual) for p in preds) if preds else 0
+        rows.append({"t": t, "best_overlap": best_overlap, "success3": int(best_overlap >= 3), "success4": int(best_overlap >= 4)})
+    perf = pd.DataFrame(rows)
+    if perf.empty:
+        st.info("Not enough data for evaluation.")
+    else:
+        perf["rolling_success3"] = perf["success3"].rolling(50, min_periods=1).mean()
+        perf["rolling_success4"] = perf["success4"].rolling(50, min_periods=1).mean()
+        st.dataframe(perf.tail(20), use_container_width=True)
+        if HAS_PLOTLY:
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(x=perf["t"], y=perf["rolling_success3"], name="Rolling success ≥3"))
+            fig.add_trace(go.Scatter(x=perf["t"], y=perf["rolling_success4"], name="Rolling success =4"))
+            fig.update_layout(title="Rolling success rates", xaxis_title="t (step)", yaxis_title="Rate")
+            st.plotly_chart(fig, use_container_width=True)
+
+    # Show current boosts and a clear button
+    st.subheader("Boosts status")
+    current_boosts = load_boosts()
+    st.write(f"Stored boosts: {sum(current_boosts.values())} total pseudo-counts across {len(current_boosts)} transitions")
+    if st.button("Clear boosts"):
+        save_boosts({})
+        st.success("Boosts cleared.")
