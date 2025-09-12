@@ -11,7 +11,7 @@ from utils import to_digits
 
 @dataclass
 class LotteryAPI:
-    base_url: str = "https://example-lottery-api.local"
+    base_url: str = "https://data.ny.gov/resource/hsys-3def.json"
     game: str = "pick4"
 
     def fetch_recent_draws(self, limit: int = 500) -> pd.DataFrame:
