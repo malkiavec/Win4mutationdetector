@@ -31,7 +31,7 @@ boost_weight = st.sidebar.slider("Boost weight (use during ranking)", 0.0, 5.0, 
 success_threshold = st.sidebar.selectbox("Success threshold (overlap, any order)", options=[3, 4], index=0)
 
 # Initialize modules
-api = LotteryAPI("https://data.ny.gov/resource/hsys-3def.json")
+api = LotteryAPI()
 data_handler = LotteryDataHandler(api=api)
 feature_engineer = FeatureEngineer()
 visualizer = LotteryVisualizer()
