@@ -1,4 +1,5 @@
 import io
+import numpy as np
 
 import pandas as pd
 import streamlit as st
@@ -17,7 +18,11 @@ st.sidebar.header("Navigation")
 page = st.sidebar.radio("Go to", ["Historical Analysis", "Predictions", "Model Performance"])
 
 st.sidebar.header("Data source")
-use_api = st.sidebar.toggle("Use API (demo)", value=False)
+# toggle may not exist in older streamlit versions -> fallback to checkbox
+if hasattr(st.sidebar, "toggle"):
+    use_api = st.sidebar.toggle("Use API (demo)", value=False)
+else:
+    use_api = st.sidebar.checkbox("Use API (demo)", value=False)
 uploaded = st.sidebar.file_uploader("Upload CSV (optional)", type=["csv"])
 
 st.sidebar.header("Prediction Settings")
